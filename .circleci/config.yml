@@ -75,13 +75,14 @@ commands:
             }
 
   revert-migrations:
-    description: Revert the last migration if successfully run in the current workflow.
+    description:
+      Revert the last migration if successfully run in the current workflow.
       #parameters:
     # Add parameter here
     steps:
       - restore_cache:
           key: v1-backend-build
-          
+
       - run:
           name: Revert migrations
           when: on_fail
@@ -105,7 +106,7 @@ jobs:
 
       - run:
           name: Install prerequsites
-          command: |            
+          command: |
             sudo apt -y install jq tar gzip git curl
 
       - run:
@@ -119,7 +120,7 @@ jobs:
           paths:
             - ~/project/frontend/node_modules
 
-      - slack-notification-fail
+      # - slack-notification-fail
 
   build-backend:
     docker:
@@ -145,7 +146,7 @@ jobs:
           paths:
             - ~/project/backend/node_modules
 
-      - slack-notification-fail
+      # - slack-notification-fail
 
   test-frontend:
     docker:
@@ -168,7 +169,7 @@ jobs:
             npm i
             npm run test
 
-      - slack-notification-fail
+      # - slack-notification-fail
 
   test-backend:
     docker:
@@ -190,7 +191,7 @@ jobs:
             cd backend
             npm run test
 
-      - slack-notification-fail
+      # - slack-notification-fail
 
   scan-frontend:
     docker:
@@ -212,7 +213,7 @@ jobs:
             cd frontend
             npm audit --audit-level=critical
 
-      - slack-notification-fail
+      # - slack-notification-fail
 
   scan-backend:
     docker:
@@ -223,7 +224,7 @@ jobs:
       - run:
           name: Install prerequsites
           command: |
-            sudo apt -y install jq tar gzip git curl   
+            sudo apt -y install jq tar gzip git curl
 
       - restore_cache:
           key: v1-backend-build
@@ -234,7 +235,7 @@ jobs:
             cd backend
             npm audit --audit-level=critical
 
-      - slack-notification-fail
+      # - slack-notification-fail
 
   deploy-infrastructure:
     docker:
@@ -287,8 +288,8 @@ jobs:
             --tags project=udapeople \
             --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-      
-      - slack-notification-fail
+
+      # - slack-notification-fail
       - destroy-environment
 
   configure-infrastructure:
@@ -320,14 +321,14 @@ jobs:
           command: |
             cd ~/project/.circleci/ansible
             ansible-playbook configure-server.yml --inventory-file=inventory.txt
-            
+
       - run:
           name: Install prometheus node exporter
           command: |
             cd ~/project/.circleci/ansible
             ansible-playbook configure-prometheus.yml --inventory-file=inventory.txt
 
-      - slack-notification-fail
+      # - slack-notification-fail
       - destroy-environment
 
   run-migrations:
@@ -365,9 +366,9 @@ jobs:
                --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
 
-      - slack-notification-fail
+      # - slack-notification-fail
       - revert-migrations
-      - destroy-environment      
+      - destroy-environment
 
   deploy-frontend:
     docker:
@@ -389,7 +390,7 @@ jobs:
 
       - run:
           name: Build frontend
-          command: |            
+          command: |
             cd frontend
             npm i
 
@@ -420,10 +421,10 @@ jobs:
             --request PUT --data "$S3_URL" \
             https://api.memstash.io/values/S3_URL_${CIRCLE_WORKFLOW_ID:0:7}
 
-      - slack-notification-fail
+      # - slack-notification-fail
       - revert-migrations
       - destroy-environment
-      
+
   deploy-backend:
     docker:
       - image: willhallonline/ansible:2.10-ubuntu-18.04
@@ -467,7 +468,7 @@ jobs:
             cd ~/project/.circleci/ansible
             ansible-playbook deploy-backend.yml --inventory-file=inventory.txt
 
-      - slack-notification-fail
+      # - slack-notification-fail
       - revert-migrations
       - destroy-environment
 
@@ -495,9 +496,8 @@ jobs:
             S3_URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-${LOCATION}.amazonaws.com/index.html"
             echo $S3_URL
             curl -s ${S3_URL} | grep "Welcome"
-            
 
-      - slack-notification-fail
+      # - slack-notification-fail
       - revert-migrations
       - destroy-environment
 
@@ -533,7 +533,7 @@ jobs:
             --stack-name "udapeople-cloudfront" \
             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
 
-      - slack-notification-fail
+      # - slack-notification-fail
       - revert-migrations
       - destroy-environment
 
@@ -546,7 +546,7 @@ jobs:
           name: Install dependencies
           command: |
             yum -y install jq tar gzip git curl
-      
+
       - run:
           name: Remove old stacks and files
           command: |
@@ -566,7 +566,7 @@ jobs:
               aws cloudformation delete-stack --stack-name frontend-${OldWorkflowID}
             fi
 
-      - slack-notification-fail
+      # - slack-notification-fail
 
 workflows:
   default:
@@ -586,38 +586,38 @@ workflows:
           requires: [build-frontend]
       - scan-backend:
           context: slack
-          requires: [build-backend]          
-      - deploy-infrastructure:
-          context: slack
-          requires:
-            - scan-backend
-            - scan-frontend
-            - test-backend
-            - test-frontend
-          filters:
-              branches:
-                only:
-                  - master
-      - configure-infrastructure:
-          context: slack
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          context: slack
-          requires: [ configure-infrastructure ]
-      - deploy-backend:
-          context: slack
-          requires: [ run-migrations ]
-      - deploy-frontend:
-          context: slack
-          requires: [ deploy-backend ]
-      - smoke-test:
-          context: slack
-          requires:
-            - deploy-frontend
-            - deploy-backend
-      - cloudfront-update:
-          context: slack
-          requires: [ smoke-test ]
-      - cleanup:
-          context: slack
-          requires: [ cloudfront-update ]
+          requires: [build-backend]
+      # - deploy-infrastructure:
+      #     context: slack
+      #     requires:
+      #       - scan-backend
+      #       - scan-frontend
+      #       - test-backend
+      #       - test-frontend
+      #     filters:
+      #         branches:
+      #           only:
+      #             - master
+      # - configure-infrastructure:
+      #     context: slack
+      #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     context: slack
+      #     requires: [ configure-infrastructure ]
+      # - deploy-backend:
+      #     context: slack
+      #     requires: [ run-migrations ]
+      # - deploy-frontend:
+      #     context: slack
+      #     requires: [ deploy-backend ]
+      # - smoke-test:
+      #     context: slack
+      #     requires:
+      #       - deploy-frontend
+      #       - deploy-backend
+      # - cloudfront-update:
+      #     context: slack
+      #     requires: [ smoke-test ]
+      # - cleanup:
+      #     context: slack
+      #     requires: [ cloudfront-update ]
