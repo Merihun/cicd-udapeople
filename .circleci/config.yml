@@ -254,17 +254,26 @@ jobs:
             # build-backend:
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=udapeople \
-              --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7}
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+
+            # aws cloudformation deploy \
+            #   --template-file .circleci/files/backend.yml \
+            #   --tags project=udapeople \
+            #   --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            #   --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Add backend ip to ansible inventory
           command: |
-            BACKEND_IP=`aws ec2 describe-instances \
+            # BACKEND_IP=`aws ec2 describe-instances \
+            #   --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            #   --query "Reservations[*].Instances[*].[PublicDnsName]" \
+            #   --output text | tr -d '\n'`
+            BACKEND_IP=$(aws ec2 describe-instances \
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query "Reservations[*].Instances[*].[PublicDnsName]" \
-              --output text | tr -d '\n'`
-
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
             echo $BACKEND_IP >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
 
@@ -284,10 +293,15 @@ jobs:
           command: |
             # build-frontend:
             aws cloudformation deploy \
-            --template-file .circleci/files/frontend.yml \
-            --tags project=udapeople \
-            --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+              --template-file .circleci/files/frontend.yml \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+            # aws cloudformation deploy \
+            # --template-file .circleci/files/frontend.yml \
+            # --tags project=udapeople \
+            # --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            # --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
 
       # - slack-notification-fail
       - destroy-environment
@@ -598,9 +612,9 @@ workflows:
             branches:
               only:
                 - master
-      - configure-infrastructure:
-          # context: slack
-          requires: [deploy-infrastructure]
+      # - configure-infrastructure:
+      # context: slack
+      # requires: [deploy-infrastructure]
       # - run-migrations:
       #     context: slack
       #     requires: [ configure-infrastructure ]
