@@ -211,7 +211,7 @@ jobs:
           name: Scan frontend depedencies
           command: |
             cd frontend
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical
 
       # - slack-notification-fail
 
@@ -233,7 +233,7 @@ jobs:
           name: Scan backend depedencies
           command: |
             cd backend
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical
 
       # - slack-notification-fail
 
