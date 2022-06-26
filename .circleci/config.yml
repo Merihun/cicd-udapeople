@@ -300,7 +300,7 @@ jobs:
 
       - add_ssh_keys:
           fingerprints:
-            - "12:ed:24:97:4a:cc:64:0a:0f:8d:c8:dd:ab:49:ca:4b"
+            - "1d:b4:d2:cc:c8:a2:8c:98:91:67:8b:86:2c:1b:bf:51"
 
       - run:
           name: Install dependencies
@@ -433,7 +433,7 @@ jobs:
 
       - add_ssh_keys:
           fingerprints:
-            - "12:ed:24:97:4a:cc:64:0a:0f:8d:c8:dd:ab:49:ca:4b"
+            - "1d:b4:d2:cc:c8:a2:8c:98:91:67:8b:86:2c:1b:bf:51"
 
       - run:
           name: Install dependencies
@@ -587,20 +587,20 @@ workflows:
       - scan-backend:
           # context: slack
           requires: [build-backend]
-      # - deploy-infrastructure:
-      #     context: slack
-      #     requires:
-      #       - scan-backend
-      #       - scan-frontend
-      #       - test-backend
-      #       - test-frontend
-      #     filters:
-      #         branches:
-      #           only:
-      #             - master
-      # - configure-infrastructure:
-      #     context: slack
-      #     requires: [deploy-infrastructure]
+      - deploy-infrastructure:
+          # context: slack
+          requires:
+            - scan-backend
+            - scan-frontend
+            - test-backend
+            - test-frontend
+          filters:
+            branches:
+              only:
+                - master
+      - configure-infrastructure:
+          # context: slack
+          requires: [deploy-infrastructure]
       # - run-migrations:
       #     context: slack
       #     requires: [ configure-infrastructure ]
